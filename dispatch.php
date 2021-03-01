@@ -33,8 +33,8 @@ if ( $btnDispatchClicked == true ) {
   }
 
   $incidentStatus = 0;
-
-  if ( $numOfPatrolCarDispatched > 0 ) {
+}
+  if ($numOfPatrolCarDispatched > 0 ) {
     $incidentStatus = 2; //dispatched
   } else
     $incidentStatus = 1; //pending

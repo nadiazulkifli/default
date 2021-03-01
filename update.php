@@ -6,7 +6,7 @@
 	if($isBtnSearchClicked == true){
 		$carId = $_POST["patrolCarId"];
 		//echo "You have search car id:" . $carId;
-		$SQL = "SELECT * FROM `patrolcar` WHERE patrolcar_id = '". $carId ."'";
+		$sql = "SELECT * FROM `patrolcar` WHERE patrolcar_id = '". $carId ."'";
 		$conn = new mysqli( DB_SERVER, DB_USER, DB_PASSWORD, DB_DATABASE);
 		$result = $conn->query($sql);
 		if($row = $result->fetch_assoc()){

@@ -10,7 +10,7 @@
 		$incidentType = ["id"=>$id, "type"=>$type];
 		array_push($incidentTypes,$incidentType);
 	}
-$conn->close();
+	$conn->close();
 	
 ?>
 <!doctype html>
@@ -69,7 +69,7 @@ $conn->close();
       </div>
 		<div class="form-group row">
         <div class="offset-sm-4 col-sm-8">
-      <button type="submit" class="btn btn-primary" name="submit" id="submit">Process Call</button>
+      <button type="submit" class="btn btn-primary" name="btnProcessCall" id="submit">Process Call</button>
         </div>
       </div>
     

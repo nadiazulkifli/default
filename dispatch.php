@@ -1,80 +1,86 @@
 <?php
-$callerName = $_POST[ "callerName" ];
-$contactNumber = $_POST[ "contactNumber" ];
-$locationOfIncident = $_POST[ "locationOfIncident" ];
-$typeOfIncident = $_POST[ "typeOfIncident" ];
-$descriptionOfIncident = $_POST[ "descriptionOfIncident" ];
-require_once "db.php";
-$conn = new mysqli( DB_SERVER, DB_USER, DB_PASSWORD, DB_DATABASE );
-$sql = "SELECT patrolcar.patrolcar_id,patrolcar_status.patrolcar_status_desc FROM `patrolcar` INNER JOIN patrolcar_status ON patrolcar.patrolcar_status_id = patrolcar_status.patrolcar_status_id";
-$result = $conn->query( $sql );
-$cars = [];
-while ( $row = $result->fetch_assoc() ) {
-  $id = $row[ "patrolcar_id" ];
-  $status = $row[ "patrolcar_status_desc" ];
-  $car = [ "id" => $id, "status" => $status ];
-  array_push( $cars, $car );
-}
-$conn->close();
+	$callerName = $_POST[ "callerName" ];
+	$contactNumber = $_POST[ "contactNumber" ];
+	$locationOfIncident = $_POST[ "locationOfIncident" ];
+	$typeOfIncident = $_POST[ "typeOfIncident" ];
+	$descriptionOfIncident = $_POST[ "descriptionOfIncident" ];
+	require_once "db.php";
+	$conn = new mysqli( DB_SERVER, DB_USER, DB_PASSWORD, DB_DATABASE );
+	$sql = "SELECT patrolcar.patrolcar_id,patrolcar_status.patrolcar_status_desc FROM `patrolcar` INNER JOIN patrolcar_status ON patrolcar.patrolcar_status_id = patrolcar_status.patrolcar_status_id";
+	$result = $conn->query( $sql );
+	$cars = [];
+	while ( $row = $result->fetch_assoc() ) {
+	  $id = $row[ "patrolcar_id" ];
+	  $status = $row[ "patrolcar_status_desc" ];
+	  $car = [ "id" => $id, "status" => $status ];
+	  array_push( $cars, $car );
+	}
+	$conn->close();
 
-$btnDispatchClicked = isset( $_POST[ "btnDispatch" ] );
-$btnProcessClicked = isset( $_POST[ "btnProcessCall" ] );
-if ( $btnDispatchClicked == false && $btnProcessClicked == false ) {
-  header( "location:logcall.php" );
-}
-if ( $btnDispatchClicked == true ) {
-  $insertIncidentSuccess = false;
-  $hasCarSelection = isset( $_POST[ "cbCarSelection" ] );
-  $patrolcarDispatched = [];
-  $numOfPatrolCarDispatched = 0;
-  if ( $hasCarSelection == true ) {
-    $patrolcarDispatched = $_POST[ "cbCarSelection" ];
-    $numOfPatrolCarDispatched = count( $patrolcarDispatched );
-  }
+	$btnDispatchClicked = isset( $_POST[ "btnDispatch" ] );
+	$btnProcessClicked = isset( $_POST[ "btnProcessCall" ] );
+	if ( $btnDispatchClicked == false && $btnProcessClicked == false ) {
+	  header( "location:logcall.php" );
+	}
+	if ( $btnDispatchClicked == true ) {
+	  $insertIncidentSuccess = false;
+	  $hasCarSelection = isset( $_POST[ "cbCarSelection" ] );
+	  $patrolcarDispatched = [];
+	  $numOfPatrolCarDispatched = 0;
+	  if ( $hasCarSelection == true ) {
+		$patrolcarDispatched = $_POST[ "cbCarSelection" ];
+		$numOfPatrolCarDispatched = count( $patrolcarDispatched );
+	  }
 
-  $incidentStatus = 0;
-}
-  if ($numOfPatrolCarDispatched > 0 ) {
-    $incidentStatus = 2; //dispatched
-  } else
-    $incidentStatus = 1; //pending
-  $callerName = $_POST[ "callerName" ];
-  $contactNumber = $_POST[ "contactNumber" ];
-  $locationOfIncident = $_POST[ "locationOfIncident" ];
-  $typeOfIncident = $_POST[ "typeOfIncident" ];
-  $descriptionOfIncident = $_POST[ "descriptionOfIncident" ];
+	  $incidentStatus = 0;
+		
+		 if ($numOfPatrolCarDispatched > 0 ) {
+		$incidentStatus = 2; //dispatched
+	  }
+		else
+		$incidentStatus = 1; //pending
+	  $callerName = $_POST[ "callerName" ];
+	  $contactNumber = $_POST[ "contactNumber" ];
+	  $locationOfIncident = $_POST[ "locationOfIncident" ];
+	  $typeOfIncident = $_POST[ "typeOfIncident" ];
+	  $descriptionOfIncident = $_POST[ "descriptionOfIncident" ];
 
-  $sql = "INSERT INTO `incident`(`caller_name`, `phone_number`, `incident_type_id`, `incident_location`, `incident_desc`, `incident_status_id`, `time_called`) VALUES ('" . $callerName . "','" . $contactNumber . "','" . $typeOfIncident . "','" . $locationOfIncident . "','" . $descriptionOfIncident . "','" . $incidentStatus . "',now())";
-  //echo $sql;
-  $conn = new mysqli( DB_SERVER, DB_USER, DB_PASSWORD, DB_DATABASE );
-  $insertIncidentSuccess = $conn->query( $sql );
-  if ( $insertIncidentSuccess == false ) {
-    echo "Error:" . $sql . "<br>" . $conn->error;
-  }
-  $incidentId = mysqli_insert_id( $conn );
-  //echo "<br>new incident id: " . $incidentId;	
-  $updateSucess = false;
-  $insertDispatchSuccess = false;
+	  $sql = "INSERT INTO `incident`(`caller_name`, `phone_number`, `incident_type_id`, `incident_location`, `incident_desc`, `incident_status_id`, `time_called`) VALUES ('" . $callerName . "','" . $contactNumber . "','" . $typeOfIncident . "','" . $locationOfIncident . "','" . $descriptionOfIncident . "','" . $incidentStatus . "',now())";
+	  //echo $sql;
+	  $conn = new mysqli( DB_SERVER, DB_USER, DB_PASSWORD, DB_DATABASE );
+	  $insertIncidentSuccess = $conn->query( $sql );
+	  if ( $insertIncidentSuccess == false ) {
+		echo "Error:" . $sql . "<br>" . $conn->error;
+	  }
+	  $incidentId = mysqli_insert_id( $conn );
+	  //echo "<br>new incident id: " . $incidentId;
+		
+	  $updateSucess = false;
+	  $insertDispatchSuccess = false;
 
-  foreach ( $patrolcarDispatched as $eachCarId ) {
-    //echo $eachCarId . "<br>";
+	  foreach ($patrolcarDispatched as $eachCarId ) {
+		//echo $eachCarId . "<br>";
 
-    $sql = "UPDATE `patrolcar` SET `patrolcar_status_id`=1 WHERE `patrolcar_id`='" . $eachCarId . "'";
-    $updateSucess = $conn->query( $sql );
-    if ( $updateSucess == false ) {
-      echo "Error:" . $sql . "<br>" . $conn->error;
-    }
-    $sql = "INSERT INTO `dispatch`(`incident_id`, `patrolcar_id`, `time_dispatched`) VALUES (" . $incidentId . ",'" . $eachCarId . "',now())";
-    $insertDispatchSuccess = $conn->query( $sql );
-    if ( $insertDispatchSuccess == false ) {
-      echo "Error:" . $sql . "<br>" . $conn->error;
-    }
-    $conn->close();
-    if ( $insertDispatchSuccess == true && $updateSuccess == true && $insertDispatchSuccess == true ) {
-      header( "location: logcall.php" );
-    }
-  }
+		$sql = "UPDATE `patrolcar` SET `patrolcar_status_id`=1 WHERE `patrolcar_id`='" . $eachCarId . "'";
+		$updateSucess = $conn->query( $sql );
+		if ( $updateSucess == false ) {
+		  echo "Error:" . $sql . "<br>" . $conn->error;
+		}
+		  
+		$sql = "INSERT INTO `dispatch`(`incident_id`, `patrolcar_id`, `time_dispatched`) VALUES (" . $incidentId . ",'" . $eachCarId . "',now())";
+		$insertDispatchSuccess = $conn->query( $sql );
+		if ( $insertDispatchSuccess == false ) {
+		  echo "Error:" . $sql . "<br>" . $conn->error;
+		}
+		  
+		$conn->close();
+		if ( $insertDispatchSuccess == true && $updateSuccess == true && $insertDispatchSuccess == true ){
+		  header( "location: logcall.php" );
+		}
+	  }
 
+	}
+	 
   ?>
 <!doctype html>
 <html>

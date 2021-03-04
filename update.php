@@ -10,7 +10,7 @@
 		$conn = new mysqli( DB_SERVER, DB_USER, DB_PASSWORD, DB_DATABASE);
 		$result = $conn->query($sql);
 		if($row = $result->fetch_assoc()){
-			$carId = $row["patrolcar_status_id"];
+			$carId = $row["patrolcar_id"];
 			$statusId = $row["patrolcar_status_id"];
 			$car = ["id"=>$carId,"statusId"=>$statusId];
 		}
@@ -24,8 +24,63 @@
 			$status = ["id"=>$id, "title"=>$title];
 			array_push($statuses,$status);
 	}
+		
 		$conn->close();
+		
 	}
+		$updateSuccess = false;
+		$btnUpdateClicked = isset ($_POST["btnUpdate"]);
+		if($btnUpdateClicked == true){
+			$updateSuccess = false;
+			$conn = new mysqli( DB_SERVER, DB_USER, DB_PASSWORD, DB_DATABASE );
+			$newStatusId = $_POST["carStatus"];
+			$carId = $_POST["patrolCarId"];
+			
+			$sql = "UPDATE `patrolcar` SET `patrolcar_status_id`=" . $newStatusId . " WHERE `patrolcar_id`='" . $carId . "'";
+		 $updateSucess = $conn->query( $sql);
+		
+		if ( $updateSucess == false ) {
+		  echo "Error:" . $sql . "<br>" . $conn->error;
+		}
+			if($newStatusId == 4){
+				//Arrived
+				$sql = "UPDATE `dispatch` SET `time_arrived`=now() WHERE time_arrived is null and patrolcar_id ='". $carId ."'";
+		 $updateSucess = $conn->query( $sql);
+		
+		if ( $updateSucess == false ) {
+		  echo "Error:" . $sql . "<br>" . $conn->error;
+		}
+				
+			}
+			else if($newStatusId == 3){
+				$sql = "SELECT incident_id FROM `dispatch` WHERE time_completed is null and patrolcar_id='". $carId ."'";
+		 $result = $conn->query( $sql);
+				$incidentId =0;
+				if($result->num_rows > 0){
+					if($row = $result->fetch_assoc()){
+						$incidentId= $row["incident_id"];
+					}
+				}
+				$sql = "UPDATE `dispatch` SET `time_completed`=now() WHERE time_completed is null and patrolcar_id ='". $carId ."'";
+			 $updateSucess = $conn->query( $sql);
+
+		if ( $updateSucess == false ) {
+		  echo "Error:" . $sql . "<br>" . $conn->error;
+		}
+				$sql = "UPDATE `incident` SET `incident_status_id`=3 WHERE incident_id ='". $incidentId ."'";
+			 $updateSucess = $conn->query( $sql);
+
+		if ( $updateSucess == false ) {
+		  echo "Error:" . $sql . "<br>" . $conn->error;
+		}
+			}
+			$conn->close();
+			if($updateSucess == true){
+				header("location: search.php");
+			}
+			
+		}
+	
 ?>
 <!doctype html>
 <html>
@@ -41,15 +96,14 @@
 	include "header.php";
 	?>
   <section class="mt-3">
-    <form>
+     <form action="<?php echo htmlentities($_SERVER["PHP_SELF"])?>" method="post">
 		<?php
 			if($car != null){
 				echo "<div class=\"form-group row\">
         <label for=\"patrolCarId\" class=\"col-sm-4 col-form-label\">Patrol Car Number</label>
-        <div class=\"col-sm-8\">
-          
+			<div class=\"col-sm-8\">
 			<span>
-			". $car["id"] . "
+				". $car["id"] . "
 			<input type=\"hidden\" id=\"patrolCarId\" name=\"patrolCarId\" value=\"". $car["id"] . "\">
 			</span>
         </div>
@@ -61,7 +115,10 @@
 			<option value=\"\">Select</option>
 			";
 			$selected = "";		
-			foreach($statuses as $status){
+			foreach($statuses as $status) {
+				if($status["id"] == $car["statusId"]) {
+					$selected = "selected=\"selected\"";
+				}
 				echo "<option value=\"" . $status["id"] . "\">". $status["title"] . "</option>";
 			}		
 			echo 
@@ -74,7 +131,7 @@
 		
 		<div class=\"form-group row\">
         <div class=\"offset-sm-4 col-sm-8\">
-      <button type=\"submit\" class=\"btn btn-primary\" name=\"submit\" id=\"submit\">Update</button>
+      <button type=\"submit\" class=\"btn btn-primary\" name=\"btnUpdate\" id=\"submit\">Update</button>
         </div>
       </div>";
     
